@@ -183,7 +183,8 @@ fn expand_layer(
         .flatten()
         .collect();
 
-    (candidates, candidates.len() as u64)
+    let count = candidates.len() as u64;
+    (candidates, count)
 }
 
 fn merge_layer(
