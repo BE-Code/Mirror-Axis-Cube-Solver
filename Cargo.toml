@@ -1,0 +1,13 @@
+[package]
+name = "axis-cube-solver"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+rayon = "1"
+rustc-hash = "2"
+
+[[bin]]
+name = "axis-cube-solver"
+path = "src/main.rs"
