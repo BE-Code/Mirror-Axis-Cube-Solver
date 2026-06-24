@@ -4,7 +4,7 @@ use crate::state::State;
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Face {
     U,
-    D,
+    Uw,
     L,
     R,
     F,
@@ -19,9 +19,9 @@ pub enum Move {
     U = 0,
     U2,
     U3,
-    D,
-    D2,
-    D3,
+    Uw,
+    Uw2,
+    Uw3,
     L,
     L2,
     L3,
@@ -41,9 +41,9 @@ impl Move {
         Move::U,
         Move::U2,
         Move::U3,
-        Move::D,
-        Move::D2,
-        Move::D3,
+        Move::Uw,
+        Move::Uw2,
+        Move::Uw3,
         Move::L,
         Move::L2,
         Move::L3,
@@ -61,7 +61,7 @@ impl Move {
     pub fn face(self) -> Face {
         match self {
             Move::U | Move::U2 | Move::U3 => Face::U,
-            Move::D | Move::D2 | Move::D3 => Face::D,
+            Move::Uw | Move::Uw2 | Move::Uw3 => Face::Uw,
             Move::L | Move::L2 | Move::L3 => Face::L,
             Move::R | Move::R2 | Move::R3 => Face::R,
             Move::F | Move::F2 | Move::F3 => Face::F,
@@ -74,9 +74,9 @@ impl Move {
             Move::U => Move::U3,
             Move::U2 => Move::U2,
             Move::U3 => Move::U,
-            Move::D => Move::D3,
-            Move::D2 => Move::D2,
-            Move::D3 => Move::D,
+            Move::Uw => Move::Uw3,
+            Move::Uw2 => Move::Uw2,
+            Move::Uw3 => Move::Uw,
             Move::L => Move::L3,
             Move::L2 => Move::L2,
             Move::L3 => Move::L,
@@ -99,9 +99,9 @@ impl std::fmt::Display for Move {
             Move::U => "U",
             Move::U2 => "U2",
             Move::U3 => "U3",
-            Move::D => "D",
-            Move::D2 => "D2",
-            Move::D3 => "D3",
+            Move::Uw => "Uw",
+            Move::Uw2 => "Uw2",
+            Move::Uw3 => "Uw3",
             Move::L => "L",
             Move::L2 => "L2",
             Move::L3 => "L3",
@@ -122,8 +122,8 @@ impl std::fmt::Display for Move {
 fn is_opposite(face_a: Face, face_b: Face) -> bool {
     matches!(
         (face_a, face_b),
-        (Face::U, Face::D)
-            | (Face::D, Face::U)
+        (Face::U, Face::Uw)
+            | (Face::Uw, Face::U)
             | (Face::L, Face::R)
             | (Face::R, Face::L)
             | (Face::F, Face::B)
@@ -144,7 +144,7 @@ pub fn is_move_allowed(prev: Option<Move>, mov: Move) -> bool {
         return false;
     }
 
-    // Only allow opposite face when previous face is the "later" one in fixed order U < D < L < R < F < B.
+    // Only allow opposite face when previous face is the "later" one in fixed order U < Uw < L < R < F < B.
     if is_opposite(prev_face, mov_face) && face_order(prev_face) < face_order(mov_face) {
         return false;
     }
@@ -155,7 +155,7 @@ pub fn is_move_allowed(prev: Option<Move>, mov: Move) -> bool {
 fn face_order(face: Face) -> u8 {
     match face {
         Face::U => 0,
-        Face::D => 1,
+        Face::Uw => 1,
         Face::L => 2,
         Face::R => 3,
         Face::F => 4,
