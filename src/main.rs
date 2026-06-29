@@ -27,8 +27,8 @@ fn main() {
     match cli.command {
         Commands::Solve => {
             if START_STATE == SOLVED_STATE {
-                println!("START_STATE and SOLVED_STATE are both unset (0).");
-                println!("Populate them in src/cases.rs before solving.");
+                println!("START_STATE matches SOLVED_STATE.");
+                println!("Populate START_STATE in src/cases.rs before solving.");
                 return;
             }
 
