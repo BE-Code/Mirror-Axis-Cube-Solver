@@ -28,7 +28,7 @@ fn main() {
         Commands::Solve => {
             if START_STATE == SOLVED_STATE {
                 println!("START_STATE and SOLVED_STATE are both unset (0).");
-                println!("Populate them in src/state.rs before solving.");
+                println!("Populate them in src/cases.rs before solving.");
                 return;
             }
 
