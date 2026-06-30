@@ -12,3 +12,9 @@ target/
 
 # MSVC Windows MSVC target folder (e.g. from `cargo install`)
 *.pdb
+
+# Visualizer
+visualizer/node_modules/
+visualizer/dist/
+
+.DS_Store

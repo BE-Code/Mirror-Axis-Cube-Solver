@@ -2,6 +2,8 @@
 
 Minimum-move solver for a colorless **Mirror Axis Cube**. It searches for a shortest sequence of face turns using **bidirectional BFS**: one search expands from the scrambled state and another from the solved state until they meet in the middle.
 
+A standalone 3D state visualizer lives in [`visualizer/`](visualizer/).
+
 ## Requirements
 
 - [Rust](https://www.rust-lang.org/) (stable toolchain via [rustup](https://rustup.rs/))
