@@ -62,12 +62,12 @@ export class RubiksCube {
   }
 
   resetTuning(id: string): void {
-    this.tuningState.set(id, createDefaultTuning());
+    this.tuningState.set(id, createDefaultTuning(id));
     this.applyTuning(id);
   }
 
   formatTuningExport(id: string): string {
-    const state = this.tuningState.get(id) ?? createDefaultTuning();
+    const state = this.tuningState.get(id) ?? createDefaultTuning(id);
     const decomposed = this.tuningDecomposed.get(id);
     if (!decomposed) {
       return formatTuningForExport(id, state.ops, {
@@ -99,7 +99,7 @@ export class RubiksCube {
   }
 
   private appendOp(id: string, op: TuningOp): void {
-    const current = this.tuningState.get(id) ?? createDefaultTuning();
+    const current = this.tuningState.get(id) ?? createDefaultTuning(id);
     this.tuningState.set(id, { ops: [...current.ops, op] });
     this.applyTuning(id);
   }
@@ -125,7 +125,7 @@ export class RubiksCube {
     wrapper.userData.tunable = true;
     wrapper.add(content);
 
-    this.tuningState.set(id, createDefaultTuning());
+    this.tuningState.set(id, createDefaultTuning(id));
     this.applyTuning(id, wrapper);
 
     this.group.remove(current);
@@ -138,7 +138,7 @@ export class RubiksCube {
     if (!cubie || !cubie.userData.tunable) return;
 
     const slot = cubie.userData.slot as CubieSlot;
-    const state = this.tuningState.get(id) ?? createDefaultTuning();
+    const state = this.tuningState.get(id) ?? createDefaultTuning(id);
     const slotVec = new THREE.Vector3(
       slot.x * CUBIE_SPACING,
       slot.y * CUBIE_SPACING,
