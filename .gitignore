@@ -14,3 +14,7 @@ target/
 *.pdb
 
 .DS_Store
+
+# Visualizer web app
+Visualizer/node_modules/
+Visualizer/dist/
