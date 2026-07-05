@@ -18,7 +18,7 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
     alpha: false,
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setClearColor(0x0f1117);
+  renderer.setClearColor(0xf4f5f7);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();

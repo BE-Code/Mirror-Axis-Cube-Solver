@@ -10,7 +10,7 @@ export const FACE_COLORS = {
   L: 0xff5800,
 } as const;
 
-export const HIDDEN_FACE = 0x1a1d24;
+export const HIDDEN_FACE = 0xd8dce3;
 
 export function faceMaterial(color: number): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({

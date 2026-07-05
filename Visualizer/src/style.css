@@ -12,8 +12,8 @@ body,
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #0f1117;
-  color: #e8eaed;
+  background: #f4f5f7;
+  color: #1a1d24;
   font-family:
     system-ui,
     -apple-system,
@@ -36,8 +36,8 @@ body,
 
 .toolbar {
   padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid #2a2f3a;
-  background: #161a22;
+  border-bottom: 1px solid #e2e5ea;
+  background: #ffffff;
   z-index: 1;
 }
 
@@ -50,7 +50,7 @@ body,
 .subtitle {
   margin-top: 0.2rem;
   font-size: 0.8rem;
-  color: #8b93a7;
+  color: #5c6478;
 }
 
 #canvas {
@@ -65,8 +65,8 @@ body,
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-right: 1px solid #2a2f3a;
-  background: #13161d;
+  border-right: 1px solid #e2e5ea;
+  background: #ffffff;
 }
 
 .piece-panel__header {
@@ -75,7 +75,7 @@ body,
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.65rem 0.85rem;
-  border-bottom: 1px solid #2a2f3a;
+  border-bottom: 1px solid #e2e5ea;
   flex-shrink: 0;
 }
 
@@ -84,7 +84,7 @@ body,
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #8b93a7;
+  color: #5c6478;
 }
 
 .piece-panel__actions {
@@ -95,7 +95,7 @@ body,
 .btn-link {
   border: none;
   background: none;
-  color: #6ea8fe;
+  color: #0b57d0;
   font-size: 0.72rem;
   cursor: pointer;
   padding: 0;
@@ -135,11 +135,11 @@ body,
 }
 
 .piece-toggle:hover {
-  background: #1a1f2a;
+  background: #eef1f5;
 }
 
 .piece-toggle input {
-  accent-color: #6ea8fe;
+  accent-color: #0b57d0;
   flex-shrink: 0;
 }
 
