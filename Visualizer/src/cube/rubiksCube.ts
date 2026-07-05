@@ -8,15 +8,14 @@ import {
   type PieceModelId,
 } from "./pieces";
 import { createModelCubie, disposeObject3D } from "../model/pieceModel";
-import {
-  nudgeQuaternion,
-  slotPositionWithCubeRotation,
-  toThreeQuaternion,
-} from "../model/cubeSpaceRotation";
+import { applyTuningToWrapper } from "../model/cubeSpaceRotation";
 import {
   createDefaultTuning,
+  foldTallies,
   formatTuningForExport,
   type PieceTuningState,
+  type PieceTuningView,
+  type TuningOp,
 } from "../model/pieceTuning";
 import { PIECE_TRANSFORMS } from "../model/pieceTransforms";
 
@@ -29,6 +28,7 @@ export class RubiksCube {
   readonly group: THREE.Group;
   private readonly cubies = new Map<string, THREE.Object3D>();
   private readonly tuningState = new Map<string, PieceTuningState>();
+  private readonly tuningDecomposed = new Map<string, ReturnType<typeof applyTuningToWrapper>>();
 
   constructor() {
     this.group = new THREE.Group();
@@ -52,27 +52,13 @@ export class RubiksCube {
     return Object.keys(MODEL_ASSIGNMENTS);
   }
 
-  getTuning(id: string): PieceTuningState | undefined {
+  getTuning(id: string): PieceTuningView | undefined {
     const state = this.tuningState.get(id);
     if (!state) return undefined;
     return {
-      quaternion: [...state.quaternion] as PieceTuningState["quaternion"],
-      twistDeg: [...state.twistDeg] as [number, number, number],
-      scale: state.scale,
-      position: [...state.position] as [number, number, number],
+      ops: [...state.ops],
+      ...foldTallies(state.ops),
     };
-  }
-
-  setTuning(id: string, partial: Partial<PieceTuningState>): void {
-    const current = this.tuningState.get(id) ?? createDefaultTuning();
-    const next: PieceTuningState = {
-      quaternion: partial.quaternion ?? [...current.quaternion] as PieceTuningState["quaternion"],
-      twistDeg: partial.twistDeg ?? [...current.twistDeg] as [number, number, number],
-      scale: partial.scale ?? current.scale,
-      position: partial.position ?? [...current.position] as [number, number, number],
-    };
-    this.tuningState.set(id, next);
-    this.applyTuning(id);
   }
 
   resetTuning(id: string): void {
@@ -82,42 +68,40 @@ export class RubiksCube {
 
   formatTuningExport(id: string): string {
     const state = this.tuningState.get(id) ?? createDefaultTuning();
-    return formatTuningForExport(id, state);
+    const decomposed = this.tuningDecomposed.get(id);
+    if (!decomposed) {
+      return formatTuningForExport(id, state.ops, {
+        position: [0, 0, 0],
+        quaternion: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+      });
+    }
+    return formatTuningForExport(id, state.ops, decomposed);
   }
 
   nudgeRotation(id: string, axis: "x" | "y" | "z", deltaDeg: number): void {
     if (deltaDeg === 0) return;
-
-    const current = this.tuningState.get(id) ?? createDefaultTuning();
-    const index = axis === "x" ? 0 : axis === "y" ? 1 : 2;
-    const twistDeg = [...current.twistDeg] as [number, number, number];
-    twistDeg[index] += deltaDeg;
-
-    this.setTuning(id, {
-      quaternion: nudgeQuaternion(current.quaternion, axis, deltaDeg),
-      twistDeg,
-    });
+    this.appendOp(id, { kind: "rotate", axis, deltaDeg });
   }
 
   nudgePosition(id: string, axis: "x" | "y" | "z", delta: number): void {
     if (delta === 0) return;
-
-    const current = this.tuningState.get(id) ?? createDefaultTuning();
-    const index = axis === "x" ? 0 : axis === "y" ? 1 : 2;
-    const position = [...current.position] as [number, number, number];
-    position[index] += delta;
-    this.setTuning(id, { position });
+    this.appendOp(id, { kind: "translate", axis, delta });
   }
 
   nudgeScale(id: string, delta: number): void {
     if (delta === 0) return;
-
-    const current = this.tuningState.get(id) ?? createDefaultTuning();
-    this.setTuning(id, { scale: current.scale + delta });
+    this.appendOp(id, { kind: "scale", delta });
   }
 
   protected createCubie(slot: CubieSlot): THREE.Object3D {
     return createBoxCubie(slot);
+  }
+
+  private appendOp(id: string, op: TuningOp): void {
+    const current = this.tuningState.get(id) ?? createDefaultTuning();
+    this.tuningState.set(id, { ops: [...current.ops, op] });
+    this.applyTuning(id);
   }
 
   private async replaceWithModel(id: string, modelId: PieceModelId): Promise<void> {
@@ -135,16 +119,11 @@ export class RubiksCube {
     const content = await createModelCubie(slot, PIECE_MODELS[modelId], transform);
     content.position.set(0, 0, 0);
 
-    const scaleGroup = new THREE.Group();
-    scaleGroup.name = `tuning-scale-${id}`;
-    scaleGroup.add(content);
-
     const wrapper = new THREE.Group();
     wrapper.name = `piece-${id}`;
     wrapper.userData.slot = slot;
     wrapper.userData.tunable = true;
-    wrapper.userData.tuningScale = scaleGroup;
-    wrapper.add(scaleGroup);
+    wrapper.add(content);
 
     this.tuningState.set(id, createDefaultTuning());
     this.applyTuning(id, wrapper);
@@ -159,24 +138,15 @@ export class RubiksCube {
     if (!cubie || !cubie.userData.tunable) return;
 
     const slot = cubie.userData.slot as CubieSlot;
-    const scaleGroup = cubie.userData.tuningScale as THREE.Object3D | undefined;
     const state = this.tuningState.get(id) ?? createDefaultTuning();
-
     const slotVec = new THREE.Vector3(
       slot.x * CUBIE_SPACING,
       slot.y * CUBIE_SPACING,
       slot.z * CUBIE_SPACING,
     );
-    const tunePos = new THREE.Vector3(...state.position);
 
-    cubie.position.copy(slotPositionWithCubeRotation(slotVec, state.quaternion, tunePos));
-    cubie.quaternion.copy(toThreeQuaternion(state.quaternion));
-    cubie.scale.set(1, 1, 1);
-
-    if (scaleGroup) {
-      scaleGroup.scale.setScalar(state.scale);
-      scaleGroup.rotation.set(0, 0, 0);
-    }
+    const decomposed = applyTuningToWrapper(cubie, slotVec, state.ops);
+    this.tuningDecomposed.set(id, decomposed);
   }
 
   getPieceIds(): string[] {
