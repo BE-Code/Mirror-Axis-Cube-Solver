@@ -1,22 +1,59 @@
 import type { RubiksCube } from "../cube/rubiksCube";
-import type { PieceTuningState } from "../model/pieceTuning";
 
-type PositionComponent = 0 | 1 | 2;
+const AXIS_LABELS = ["X", "Y", "Z"] as const;
 
-const ROTATION_AXES = [
-  { axis: "x" as const, label: "X", component: 0 },
-  { axis: "y" as const, label: "Y", component: 1 },
-  { axis: "z" as const, label: "Z", component: 2 },
-];
-
-const POSITION_CONTROLS = [
-  { component: 0 as PositionComponent, label: "Pos X", min: -0.5, max: 0.5, step: 0.01 },
-  { component: 1 as PositionComponent, label: "Pos Y", min: -0.5, max: 0.5, step: 0.01 },
-  { component: 2 as PositionComponent, label: "Pos Z", min: -0.5, max: 0.5, step: 0.01 },
-];
+const ROTATION_DELTAS = [-15, -1, 1, 15];
+const POSITION_DELTAS = [-0.15, -0.01, 0.01, 0.15];
+const SCALE_DELTAS = [-0.15, -0.01, 0.01, 0.15];
 
 export interface TuningPanelOptions {
   onYAxisToggle: (visible: boolean) => void;
+}
+
+function formatDelta(delta: number): string {
+  if (Number.isInteger(delta)) {
+    return delta > 0 ? `+${delta}` : String(delta);
+  }
+  const text = delta.toFixed(2);
+  return delta > 0 ? `+${text}` : text;
+}
+
+function createStepRow(
+  label: string,
+  deltas: number[],
+  inputAttrs: Record<string, string>,
+  deltaAttr: string,
+  buttonAttrs: Record<string, string> = {},
+): { row: HTMLElement; input: HTMLInputElement } {
+  const row = document.createElement("div");
+  row.className = "tuning-row";
+
+  const extraButtonAttrs = Object.entries(buttonAttrs)
+    .map(([key, value]) => `${key}="${value}"`)
+    .join(" ");
+
+  const buttons = deltas
+    .map(
+      (delta) =>
+        `<button type="button" class="btn-step" ${deltaAttr}="${delta}" ${extraButtonAttrs}>${formatDelta(delta)}</button>`,
+    )
+    .join("");
+
+  const attrs = Object.entries(inputAttrs)
+    .map(([key, value]) => `${key}="${value}"`)
+    .join(" ");
+
+  row.innerHTML = `
+    <span class="tuning-row__label">${label}</span>
+    <div class="tuning-row__controls">
+      ${buttons}
+      <input type="number" class="tuning-field__number tuning-row__value" ${attrs} step="any" value="0" />
+    </div>
+  `;
+
+  const input = row.querySelector<HTMLInputElement>(".tuning-row__value");
+  if (!input) throw new Error(`Missing input for ${label}`);
+  return { row, input };
 }
 
 export function createTuningPanel(
@@ -48,16 +85,13 @@ export function createTuningPanel(
         <div data-role="rotation-controls"></div>
       </div>
       <div class="tuning-section">
-        <h3 class="tuning-section__title">Position</h3>
+        <h3 class="tuning-section__title">Position (cube axes)</h3>
         <div data-role="position-controls"></div>
       </div>
-      <label class="tuning-field">
-        <span class="tuning-field__label">Scale</span>
-        <div class="tuning-field__row">
-          <input type="range" data-role="scale-range" min="0.1" max="3" step="0.01" value="1" />
-          <input type="number" class="tuning-field__number" data-role="scale-number" min="0.1" max="3" step="0.01" value="1" />
-        </div>
-      </label>
+      <div class="tuning-section">
+        <h3 class="tuning-section__title">Scale</h3>
+        <div data-role="scale-controls"></div>
+      </div>
       <label class="tuning-field">
         <span class="tuning-field__label">Export values</span>
         <textarea class="tuning-export" data-role="export" readonly rows="6"></textarea>
@@ -69,8 +103,7 @@ export function createTuningPanel(
   const pieceSelect = panel.querySelector<HTMLSelectElement>("[data-role=piece-select]");
   const rotationControlsEl = panel.querySelector("[data-role=rotation-controls]");
   const positionControlsEl = panel.querySelector("[data-role=position-controls]");
-  const scaleRange = panel.querySelector<HTMLInputElement>("[data-role=scale-range]");
-  const scaleNumber = panel.querySelector<HTMLInputElement>("[data-role=scale-number]");
+  const scaleControlsEl = panel.querySelector("[data-role=scale-controls]");
   const exportArea = panel.querySelector<HTMLTextAreaElement>("[data-role=export]");
   const yAxisToggle = panel.querySelector<HTMLInputElement>("[data-role=y-axis]");
 
@@ -78,8 +111,7 @@ export function createTuningPanel(
     !pieceSelect ||
     !rotationControlsEl ||
     !positionControlsEl ||
-    !scaleRange ||
-    !scaleNumber ||
+    !scaleControlsEl ||
     !exportArea ||
     !yAxisToggle
   ) {
@@ -95,47 +127,37 @@ export function createTuningPanel(
   pieceSelect.value = activeId;
 
   const rotationInputs = new Map<number, HTMLInputElement>();
-  const positionInputs = new Map<number, { range: HTMLInputElement; number: HTMLInputElement }>();
+  const positionInputs = new Map<number, HTMLInputElement>();
 
-  for (const { axis, label, component } of ROTATION_AXES) {
-    const row = document.createElement("div");
-    row.className = "rotation-row";
-    row.innerHTML = `
-      <span class="rotation-row__label">${label}</span>
-      <div class="rotation-row__controls">
-        <button type="button" class="btn-step" data-rot-axis="${axis}" data-delta="-15">-15</button>
-        <button type="button" class="btn-step" data-rot-axis="${axis}" data-delta="-1">-1</button>
-        <input type="number" class="tuning-field__number rotation-row__value" data-rot-component="${component}" step="1" value="0" />
-        <button type="button" class="btn-step" data-rot-axis="${axis}" data-delta="1">+1</button>
-        <button type="button" class="btn-step" data-rot-axis="${axis}" data-delta="15">+15</button>
-      </div>
-    `;
-    const input = row.querySelector<HTMLInputElement>(`[data-rot-component="${component}"]`);
-    if (!input) throw new Error(`Missing rotation input for ${label}`);
+  for (let component = 0; component < 3; component++) {
+    const { row, input } = createStepRow(
+      AXIS_LABELS[component],
+      ROTATION_DELTAS,
+      { "data-rot-component": String(component) },
+      "data-rot-delta",
+      { "data-rot-component": String(component) },
+    );
     rotationInputs.set(component, input);
     rotationControlsEl.append(row);
+
+    const pos = createStepRow(
+      AXIS_LABELS[component],
+      POSITION_DELTAS,
+      { "data-pos-component": String(component) },
+      "data-pos-delta",
+      { "data-pos-component": String(component) },
+    );
+    positionInputs.set(component, pos.input);
+    positionControlsEl.append(pos.row);
   }
 
-  for (const control of POSITION_CONTROLS) {
-    const block = document.createElement("label");
-    block.className = "tuning-field";
-    block.innerHTML = `
-      <span class="tuning-field__label">${control.label}</span>
-      <div class="tuning-field__row">
-        <input type="range" data-pos-component="${control.component}" min="${control.min}" max="${control.max}" step="${control.step}" value="0" />
-        <input type="number" class="tuning-field__number" data-pos-component="${control.component}" min="${control.min}" max="${control.max}" step="${control.step}" value="0" />
-      </div>
-    `;
-    const range = block.querySelector<HTMLInputElement>(
-      `input[type=range][data-pos-component="${control.component}"]`,
-    );
-    const number = block.querySelector<HTMLInputElement>(
-      `input[type=number][data-pos-component="${control.component}"]`,
-    );
-    if (!range || !number) throw new Error(`Missing position inputs for ${control.label}`);
-    positionInputs.set(control.component, { range, number });
-    positionControlsEl.append(block);
-  }
+  const { row: scaleRow, input: scaleInput } = createStepRow(
+    "S",
+    SCALE_DELTAS,
+    { "data-role": "scale-value" },
+    "data-scale-delta",
+  );
+  scaleControlsEl.append(scaleRow);
 
   const updateExport = () => {
     exportArea.value = cube.formatTuningExport(activeId);
@@ -149,77 +171,79 @@ export function createTuningPanel(
       input.value = String(state.twistDeg[component as 0 | 1 | 2]);
     }
 
-    for (const [component, inputs] of positionInputs) {
-      const value = state.position[component];
-      inputs.range.value = String(value);
-      inputs.number.value = String(value);
+    for (const [component, input] of positionInputs) {
+      input.value = String(state.position[component]);
     }
 
-    scaleRange.value = String(state.scale);
-    scaleNumber.value = String(state.scale);
+    scaleInput.value = String(state.scale);
     updateExport();
   };
 
-  const applyPartial = (partial: Partial<PieceTuningState>) => {
-    cube.setTuning(activeId, partial);
-    syncUiFromCube();
-  };
-
-    for (const [component, input] of rotationInputs) {
-      input.addEventListener("change", () => {
-        const state = cube.getTuning(activeId);
-        if (!state) return;
-        const value = Number(input.value);
-        if (Number.isNaN(value)) return;
-        const axis = component === 0 ? "x" : component === 1 ? "y" : "z";
-        const delta = value - state.twistDeg[component as 0 | 1 | 2];
-        cube.nudgeRotation(activeId, axis, delta);
-        syncUiFromCube();
-      });
-    }
+  for (const [component, input] of rotationInputs) {
+    input.addEventListener("change", () => {
+      const state = cube.getTuning(activeId);
+      if (!state) return;
+      const value = Number(input.value);
+      if (Number.isNaN(value)) return;
+      const axis = component === 0 ? "x" : component === 1 ? "y" : "z";
+      const delta = value - state.twistDeg[component as 0 | 1 | 2];
+      cube.nudgeRotation(activeId, axis, delta);
+      syncUiFromCube();
+    });
+  }
 
   rotationControlsEl.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-    const axis = target.dataset.rotAxis;
-    const delta = target.dataset.delta;
-    if (!axis || !delta) return;
-    if (axis !== "x" && axis !== "y" && axis !== "z") return;
+    const component = target.dataset.rotComponent;
+    const delta = target.dataset.rotDelta;
+    if (component === undefined || !delta) return;
+    const axis = Number(component) === 0 ? "x" : Number(component) === 1 ? "y" : "z";
     cube.nudgeRotation(activeId, axis, Number(delta));
     syncUiFromCube();
   });
 
-  for (const [component, inputs] of positionInputs) {
-    const onChange = (raw: string) => {
-      const value = Number(raw);
-      if (Number.isNaN(value)) return;
+  for (const [component, input] of positionInputs) {
+    input.addEventListener("change", () => {
       const state = cube.getTuning(activeId);
       if (!state) return;
-      const position = [...state.position] as [number, number, number];
-      position[component] = value;
-      applyPartial({ position });
-    };
-
-    inputs.range.addEventListener("input", () => {
-      inputs.number.value = inputs.range.value;
-      onChange(inputs.range.value);
-    });
-    inputs.number.addEventListener("change", () => {
-      inputs.range.value = inputs.number.value;
-      onChange(inputs.number.value);
+      const value = Number(input.value);
+      if (Number.isNaN(value)) return;
+      const axis = component === 0 ? "x" : component === 1 ? "y" : "z";
+      const delta = value - state.position[component];
+      cube.nudgePosition(activeId, axis, delta);
+      syncUiFromCube();
     });
   }
 
-  const syncScale = (raw: string) => {
-    const value = Number(raw);
-    if (Number.isNaN(value)) return;
-    scaleRange.value = String(value);
-    scaleNumber.value = String(value);
-    applyPartial({ scale: value });
-  };
+  positionControlsEl.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const component = target.dataset.posComponent;
+    const delta = target.dataset.posDelta;
+    if (component === undefined || !delta) return;
+    const axis = Number(component) === 0 ? "x" : Number(component) === 1 ? "y" : "z";
+    cube.nudgePosition(activeId, axis, Number(delta));
+    syncUiFromCube();
+  });
 
-  scaleRange.addEventListener("input", () => syncScale(scaleRange.value));
-  scaleNumber.addEventListener("change", () => syncScale(scaleNumber.value));
+  scaleInput.addEventListener("change", () => {
+    const state = cube.getTuning(activeId);
+    if (!state) return;
+    const value = Number(scaleInput.value);
+    if (Number.isNaN(value)) return;
+    cube.nudgeScale(activeId, value - state.scale);
+    syncUiFromCube();
+  });
+
+  scaleControlsEl.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const delta = target.dataset.scaleDelta;
+    if (!delta) return;
+    cube.nudgeScale(activeId, Number(delta));
+    syncUiFromCube();
+  });
 
   pieceSelect.addEventListener("change", () => {
     activeId = pieceSelect.value;

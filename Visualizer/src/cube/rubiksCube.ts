@@ -99,6 +99,23 @@ export class RubiksCube {
     });
   }
 
+  nudgePosition(id: string, axis: "x" | "y" | "z", delta: number): void {
+    if (delta === 0) return;
+
+    const current = this.tuningState.get(id) ?? createDefaultTuning();
+    const index = axis === "x" ? 0 : axis === "y" ? 1 : 2;
+    const position = [...current.position] as [number, number, number];
+    position[index] += delta;
+    this.setTuning(id, { position });
+  }
+
+  nudgeScale(id: string, delta: number): void {
+    if (delta === 0) return;
+
+    const current = this.tuningState.get(id) ?? createDefaultTuning();
+    this.setTuning(id, { scale: current.scale + delta });
+  }
+
   protected createCubie(slot: CubieSlot): THREE.Object3D {
     return createBoxCubie(slot);
   }

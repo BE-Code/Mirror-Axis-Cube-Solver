@@ -269,7 +269,8 @@ body,
   margin-top: 0.25rem;
 }
 
-.rotation-row {
+.rotation-row,
+.tuning-row {
   display: grid;
   grid-template-columns: 1rem 1fr;
   gap: 0.45rem;
@@ -277,21 +278,24 @@ body,
   margin-bottom: 0.4rem;
 }
 
-.rotation-row__label {
+.rotation-row__label,
+.tuning-row__label {
   font-size: 0.82rem;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-weight: 600;
   color: #1a1d24;
 }
 
-.rotation-row__controls {
+.rotation-row__controls,
+.tuning-row__controls {
   display: grid;
   grid-template-columns: auto auto 3.6rem auto auto;
   gap: 0.25rem;
   align-items: center;
 }
 
-.rotation-row__value {
+.rotation-row__value,
+.tuning-row__value {
   text-align: center;
   padding: 0.2rem 0.25rem;
 }
