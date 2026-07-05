@@ -12,3 +12,5 @@ target/
 
 # MSVC Windows MSVC target folder (e.g. from `cargo install`)
 *.pdb
+
+.DS_Store
