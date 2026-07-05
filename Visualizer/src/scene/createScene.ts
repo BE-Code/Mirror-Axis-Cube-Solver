@@ -8,7 +8,25 @@ export interface SceneContext {
   camera: THREE.PerspectiveCamera;
   controls: OrbitControls;
   cube: RubiksCube;
+  setYAxisVisible: (visible: boolean) => void;
   dispose: () => void;
+}
+
+function createYAxisGuide(): THREE.Group {
+  const color = 0xd93025;
+  const material = new THREE.MeshBasicMaterial({ color });
+
+  const group = new THREE.Group();
+  group.name = "y-axis-guide";
+
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 5, 16), material);
+  shaft.name = "y-axis-shaft";
+
+  const marker = new THREE.Mesh(new THREE.SphereGeometry(0.055, 20, 20), material);
+  marker.name = "y-axis-marker";
+
+  group.add(shaft, marker);
+  return group;
 }
 
 export function createScene(canvas: HTMLCanvasElement): SceneContext {
@@ -44,8 +62,15 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
   fill.position.set(-4, -2, -3);
   scene.add(fill);
 
+  const yAxisGuide = createYAxisGuide();
+  scene.add(yAxisGuide);
+
   const cube = new RubiksCube();
   scene.add(cube.group);
+
+  const setYAxisVisible = (visible: boolean) => {
+    yAxisGuide.visible = visible;
+  };
 
   const resize = () => {
     const width = canvas.clientWidth;
@@ -73,8 +98,15 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
     cancelAnimationFrame(frameId);
     observer.disconnect();
     controls.dispose();
+    yAxisGuide.traverse((obj: THREE.Object3D) => {
+      if (obj instanceof THREE.Mesh) {
+        obj.geometry.dispose();
+        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        mats.forEach((m) => m.dispose());
+      }
+    });
     renderer.dispose();
-    cube.group.traverse((obj) => {
+    cube.group.traverse((obj: THREE.Object3D) => {
       if (obj instanceof THREE.Mesh) {
         obj.geometry.dispose();
         const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
@@ -83,5 +115,5 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
     });
   };
 
-  return { renderer, scene, camera, controls, cube, dispose };
+  return { renderer, scene, camera, controls, cube, setYAxisVisible, dispose };
 }

@@ -1,8 +1,10 @@
 import { slotToFlbrud } from "./names";
 
+import centerModelUrl from "../../3D Models/pieces/center.3mf?url";
+
 /** Maps future 3MF assets under `3D Models/pieces/`. */
 export const PIECE_MODELS = {
-  center: "3D Models/pieces/center.3mf",
+  center: centerModelUrl,
   cornerPyramid: "3D Models/pieces/corner - pyramid.3mf",
   cornerTriangle: "3D Models/pieces/corner - triangle.3mf",
   sideTrapezoid: "3D Models/pieces/side - trapezoid.3mf",
