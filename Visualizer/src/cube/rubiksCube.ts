@@ -4,7 +4,7 @@ import { buildCubieSlots, type CubieSlot } from "./pieces";
 
 export class RubiksCube {
   readonly group: THREE.Group;
-  private readonly cubies: THREE.Mesh[] = [];
+  private readonly cubies = new Map<string, THREE.Mesh>();
 
   constructor() {
     this.group = new THREE.Group();
@@ -12,7 +12,7 @@ export class RubiksCube {
 
     for (const slot of buildCubieSlots()) {
       const cubie = this.createCubie(slot);
-      this.cubies.push(cubie);
+      this.cubies.set(slot.id, cubie);
       this.group.add(cubie);
     }
   }
@@ -22,7 +22,20 @@ export class RubiksCube {
     return createBoxCubie(slot);
   }
 
-  getCubies(): readonly THREE.Mesh[] {
-    return this.cubies;
+  getPieceIds(): string[] {
+    return [...this.cubies.keys()];
+  }
+
+  getCubie(id: string): THREE.Mesh | undefined {
+    return this.cubies.get(id);
+  }
+
+  setPieceVisible(id: string, visible: boolean): void {
+    const cubie = this.cubies.get(id);
+    if (cubie) cubie.visible = visible;
+  }
+
+  isPieceVisible(id: string): boolean {
+    return this.cubies.get(id)?.visible ?? false;
   }
 }

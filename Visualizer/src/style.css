@@ -24,6 +24,14 @@ body,
 #app {
   display: grid;
   grid-template-rows: auto 1fr;
+  min-height: 0;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .toolbar {
@@ -50,4 +58,93 @@ body,
   width: 100%;
   height: 100%;
   touch-action: none;
+  min-height: 0;
+}
+
+.piece-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid #2a2f3a;
+  background: #13161d;
+}
+
+.piece-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid #2a2f3a;
+  flex-shrink: 0;
+}
+
+.piece-panel__header h2 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8b93a7;
+}
+
+.piece-panel__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-link {
+  border: none;
+  background: none;
+  color: #6ea8fe;
+  font-size: 0.72rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.piece-panel__groups {
+  overflow-y: auto;
+  padding: 0.5rem 0;
+  min-height: 0;
+}
+
+.piece-group__title {
+  padding: 0.35rem 0.85rem 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5c6478;
+}
+
+.piece-group__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.piece-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.28rem 0.85rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.piece-toggle:hover {
+  background: #1a1f2a;
+}
+
+.piece-toggle input {
+  accent-color: #6ea8fe;
+  flex-shrink: 0;
+}
+
+.piece-toggle__name {
+  font-size: 0.82rem;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: 0.04em;
 }

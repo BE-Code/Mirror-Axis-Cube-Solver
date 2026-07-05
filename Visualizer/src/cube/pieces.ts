@@ -1,3 +1,5 @@
+import { slotToFlbrud } from "./names";
+
 /** Maps future 3MF assets under `3D Models/pieces/`. */
 export const PIECE_MODELS = {
   center: "3D Models/pieces/center.3mf",
@@ -15,6 +17,8 @@ export type CubieKind = "corner" | "edge" | "center" | "core";
 export type GridCoord = -1 | 0 | 1;
 
 export interface CubieSlot {
+  /** FLBRUD id (e.g. UFR, UF, U, core). */
+  id: string;
   x: GridCoord;
   y: GridCoord;
   z: GridCoord;
@@ -24,8 +28,7 @@ export interface CubieSlot {
 }
 
 function cubieKind(x: GridCoord, y: GridCoord, z: GridCoord): CubieKind {
-  const onSurface = x === 0 || y === 0 || z === 0;
-  if (!onSurface) return "core";
+  if (x === 0 && y === 0 && z === 0) return "core";
 
   const exposedFaces = [x, y, z].filter((c) => c !== 0).length;
   if (exposedFaces === 1) return "center";
@@ -41,7 +44,8 @@ export function buildCubieSlots(): CubieSlot[] {
   for (const x of coords) {
     for (const y of coords) {
       for (const z of coords) {
-        slots.push({ x, y, z, kind: cubieKind(x, y, z) });
+        const kind = cubieKind(x, y, z);
+        slots.push({ id: slotToFlbrud(x, y, z), x, y, z, kind });
       }
     }
   }
