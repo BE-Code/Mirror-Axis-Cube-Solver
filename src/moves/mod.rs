@@ -1,4 +1,7 @@
-use crate::state::State;
+mod apply;
+mod turns;
+
+pub use apply::{apply_inverse, apply_move};
 
 /// Face of the cube (for move pruning).
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -163,19 +166,6 @@ fn face_order(face: Face) -> u8 {
     }
 }
 
-/// Apply a quarter-turn move to the cube state.
-///
-/// TODO: implement axis cube move logic here.
-pub fn apply_move(state: State, mov: Move) -> State {
-    let _ = mov;
-    state
-}
-
-/// Apply the inverse of a move (backward search).
-pub fn apply_inverse(state: State, mov: Move) -> State {
-    apply_move(state, mov.inverse())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -184,16 +174,6 @@ mod tests {
     fn move_inverse_roundtrip() {
         for mov in Move::ALL {
             assert_eq!(mov.inverse().inverse(), mov);
-        }
-    }
-
-    #[test]
-    #[ignore = "enable once apply_move is implemented"]
-    fn apply_move_inverse_returns_original() {
-        let state = State::from_raw(0x12345);
-        for mov in Move::ALL {
-            let next = apply_move(state, mov);
-            assert_eq!(apply_inverse(next, mov), state);
         }
     }
 
