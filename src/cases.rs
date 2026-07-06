@@ -30,12 +30,12 @@ pub const SOLVED: State = crate::state! {
     RU: 1,
 };
 
-pub const EXAMPLE_SCRAMBLE: State = crate::state! {
+pub const GOLDEN_FLEECE: State = crate::state! {
     F: 2,
     L: 1,
     B: 3,
     R: 0,
-    U: 3,
+    U: 2,
     FLD: 3,
     BLD: 2,
     BRD: 0,
@@ -59,7 +59,7 @@ pub const EXAMPLE_SCRAMBLE: State = crate::state! {
 };
 
 /// Active start state for the solver — change this to switch cases.
-pub const START_STATE: State = EXAMPLE_SCRAMBLE;
+pub const START_STATE: State = GOLDEN_FLEECE;
 
 /// Active goal state for the solver.
 pub const SOLVED_STATE: State = SOLVED;
