@@ -77,6 +77,11 @@ impl State {
         Self::from_raw(cleared | ((value as RawState) << shift))
     }
 
+    /// Read `source`, apply `mapping`, write to `destination`.
+    pub const fn remap_slot(self, source: u8, destination: u8, mapping: [u8; 4]) -> Self {
+        self.set_slot(destination, mapping[self.get_slot(source) as usize])
+    }
+
     /// Optional hook for rejecting impossible bit patterns.
     pub fn is_valid(self) -> bool {
         let _ = self;
