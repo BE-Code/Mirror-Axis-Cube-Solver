@@ -1,16 +1,21 @@
-use crate::state::{slot, State};
+use crate::state::{slot, SlotRemap, State};
 
 const U_CENTER_MAPPING: [u8; 4] = [3, 0, 1, 2];
 const U_CORNER_MAPPING: [u8; 4] = [0, 2, 1, 3];
 // const U_SIDE_MAPPING: [u8; 4] = [-0, -1, -2, -3];
 
-/// Clockwise quarter turn of the U face.
-pub(crate) fn turn_u(state: State) -> State {
-    state
-        .remap_slot(slot::U, slot::U, U_CENTER_MAPPING)
-        .remap_slot(slot::FLU, slot::BLU, U_CORNER_MAPPING)
+const U_TURN_REMAPS: [SlotRemap; 5] = [
+    SlotRemap::new(slot::U, slot::U, U_CENTER_MAPPING),
+    SlotRemap::new(slot::FLU, slot::BLU, U_CORNER_MAPPING),
+    SlotRemap::new(slot::BLU, slot::BRU, U_CORNER_MAPPING),
+    SlotRemap::new(slot::BRU, slot::FRU, U_CORNER_MAPPING),
+    SlotRemap::new(slot::FRU, slot::FLU, U_CORNER_MAPPING),
+];
 
-    // blu, bru, fru
+/// Clockwise quarter turn of the U face.
+#[inline]
+pub(crate) fn turn_u(state: State) -> State {
+    state.remap_batch(U_TURN_REMAPS)
 }
 
 // const UW_CENTER_MAPPING: [u8; 4] = [-0, -1, -2, -3];

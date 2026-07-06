@@ -35,6 +35,23 @@ pub mod slot {
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct SlotRemap {
+    pub source: u8,
+    pub destination: u8,
+    pub mapping: [u8; 4],
+}
+
+impl SlotRemap {
+    pub const fn new(source: u8, destination: u8, mapping: [u8; 4]) -> Self {
+        Self {
+            source,
+            destination,
+            mapping,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct State(pub RawState);
 
 impl State {
@@ -77,9 +94,23 @@ impl State {
         Self::from_raw(cleared | ((value as RawState) << shift))
     }
 
-    /// Read `source`, apply `mapping`, write to `destination`.
-    pub const fn remap_slot(self, source: u8, destination: u8, mapping: [u8; 4]) -> Self {
-        self.set_slot(destination, mapping[self.get_slot(source) as usize])
+    /// Apply remaps in one pass: every read uses the input state, then affected
+    /// destination slots are patched in the packed `u64`.
+    #[inline]
+    pub const fn remap_batch<const N: usize>(self, remaps: [SlotRemap; N]) -> Self {
+        let original = self.raw();
+        let mut result = original;
+        let mut i = 0usize;
+        while i < N {
+            let remap = remaps[i];
+            let src_shift = remap.source as u32 * BITS_PER_SLOT;
+            let src_val = ((original >> src_shift) & 0b11) as usize;
+            let mapped = remap.mapping[src_val] as RawState;
+            let dst_shift = remap.destination as u32 * BITS_PER_SLOT;
+            result = (result & !(0b11 << dst_shift)) | (mapped << dst_shift);
+            i += 1;
+        }
+        Self::from_raw(result)
     }
 
     /// Optional hook for rejecting impossible bit patterns.
@@ -130,9 +161,53 @@ macro_rules! state {
         RU: $ru:expr $(,)?
     ) => {
         $crate::state::State::from_slots([
-            $f, $l, $b, $r, $u,
-            $fld, $bld, $brd, $frd, $flu, $blu, $bru, $fru,
-            $fd, $ld, $bd, $rd, $fl, $bl, $br, $fr, $fu, $lu, $bu, $ru,
+            $f, $l, $b, $r, $u, $fld, $bld, $brd, $frd, $flu, $blu, $bru, $fru, $fd, $ld, $bd, $rd,
+            $fl, $bl, $br, $fr, $fu, $lu, $bu, $ru,
         ])
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn remap_batch_reads_all_sources_from_original() {
+        const CORNER_MAPPING: [u8; 4] = [0, 2, 1, 3];
+        const REMAPS: [SlotRemap; 4] = [
+            SlotRemap {
+                source: slot::FLU,
+                destination: slot::BLU,
+                mapping: CORNER_MAPPING,
+            },
+            SlotRemap {
+                source: slot::BLU,
+                destination: slot::BRU,
+                mapping: CORNER_MAPPING,
+            },
+            SlotRemap {
+                source: slot::BRU,
+                destination: slot::FRU,
+                mapping: CORNER_MAPPING,
+            },
+            SlotRemap {
+                source: slot::FRU,
+                destination: slot::FLU,
+                mapping: CORNER_MAPPING,
+            },
+        ];
+
+        let mut slots = [0u8; SLOT_COUNT as usize];
+        slots[slot::FLU as usize] = 0;
+        slots[slot::BLU as usize] = 1;
+        slots[slot::BRU as usize] = 2;
+        slots[slot::FRU as usize] = 3;
+        let state = State::from_slots(slots);
+        let next = state.remap_batch(REMAPS);
+
+        assert_eq!(next.get_slot(slot::BLU), CORNER_MAPPING[0]);
+        assert_eq!(next.get_slot(slot::BRU), CORNER_MAPPING[1]);
+        assert_eq!(next.get_slot(slot::FRU), CORNER_MAPPING[2]);
+        assert_eq!(next.get_slot(slot::FLU), CORNER_MAPPING[3]);
+    }
 }

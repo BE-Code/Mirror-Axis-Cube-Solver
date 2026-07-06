@@ -4,17 +4,17 @@ use crate::state::State;
 use super::turns::{turn_b, turn_f, turn_l, turn_r, turn_u, turn_uw};
 
 /// Apply a quarter-turn move to the cube state.
+#[inline]
 pub fn apply_move(state: State, mov: Move) -> State {
-    let quarters = quarter_count(mov);
-    let turn = match mov.face() {
-        Face::U => turn_u,
-        Face::Uw => turn_uw,
-        Face::L => turn_l,
-        Face::R => turn_r,
-        Face::F => turn_f,
-        Face::B => turn_b,
-    };
-    apply_turn(state, quarters, turn)
+    let face = mov.face();
+    match quarter_count(mov) {
+        1 => apply_quarter_turn(state, face),
+        2 => apply_quarter_turn(apply_quarter_turn(state, face), face),
+        _ => apply_quarter_turn(
+            apply_quarter_turn(apply_quarter_turn(state, face), face),
+            face,
+        ),
+    }
 }
 
 /// Apply the inverse of a move (backward search).
@@ -30,11 +30,15 @@ fn quarter_count(mov: Move) -> u8 {
     }
 }
 
-fn apply_turn(state: State, quarters: u8, turn: fn(State) -> State) -> State {
-    match quarters {
-        1 => turn(state),
-        2 => turn(turn(state)),
-        _ => turn(turn(turn(state))),
+#[inline]
+fn apply_quarter_turn(state: State, face: Face) -> State {
+    match face {
+        Face::U => turn_u(state),
+        Face::Uw => turn_uw(state),
+        Face::L => turn_l(state),
+        Face::R => turn_r(state),
+        Face::F => turn_f(state),
+        Face::B => turn_b(state),
     }
 }
 
