@@ -31,31 +31,36 @@ pub(crate) fn turn_u(state: State) -> State {
 // ];
 
 /// Clockwise quarter turn of the Uw (whole-cube) axis.
+#[inline]
 pub(crate) fn turn_uw(state: State) -> State {
-    let _ = state;
+    // state.remap_batch(UW_TURN_REMAPS)
     state
 }
 
 /// Clockwise quarter turn of the L face.
+#[inline]
 pub(crate) fn turn_l(state: State) -> State {
-    let _ = state;
+    // state.remap_batch(L_TURN_REMAPS)
     state
 }
 
 /// Clockwise quarter turn of the R face.
+#[inline]
 pub(crate) fn turn_r(state: State) -> State {
-    let _ = state;
+    // state.remap_batch(R_TURN_REMAPS)
     state
 }
 
 /// Clockwise quarter turn of the F face.
+#[inline]
 pub(crate) fn turn_f(state: State) -> State {
-    let _ = state;
+    // state.remap_batch(F_TURN_REMAPS)
     state
 }
 
 /// Clockwise quarter turn of the B face.
+#[inline]
 pub(crate) fn turn_b(state: State) -> State {
-    let _ = state;
+    // state.remap_batch(B_TURN_REMAPS)
     state
 }
