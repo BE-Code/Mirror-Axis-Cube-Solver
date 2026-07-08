@@ -3,7 +3,6 @@ use crate::state::{slot, SlotRemap, State};
 const U_CENTER_MAPPING: [u8; 4] = [3, 0, 1, 2];
 const U_CORNER_MAPPING: [u8; 4] = [0, 2, 1, 3];
 const U_SIDE_MAPPING: [u8; 4] = [0, 1, 3, 2];
-
 const U_TURN_REMAPS: [SlotRemap; 9] = [
     SlotRemap::new(slot::U, slot::U, U_CENTER_MAPPING),
     SlotRemap::new(slot::FLU, slot::BLU, U_CORNER_MAPPING),
@@ -22,9 +21,14 @@ pub(crate) fn turn_u(state: State) -> State {
     state.remap_batch(U_TURN_REMAPS)
 }
 
-// const UW_CENTER_MAPPING: [u8; 4] = [-0, -1, -2, -3];
-// const UW_CORNER_MAPPING: [u8; 4] = [-0, -1, -2, -3];
-// const UW_SIDE_MAPPING:   [u8; 4] = [-0, -1, -2, -3];
+// const _CENTER_MAPPING: [u8; 4] = [-0, -1, -2, -3];
+// const _CORNER_MAPPING: [u8; 4] = [-0, -1, -2, -3];
+// const _SIDE_MAPPING:   [u8; 4] = [-0, -1, -2, -3];
+// const _TURN_REMAPS: [SlotRemap; 9] = [
+//     SlotRemap::new(, _CENTER_MAPPING),
+//     SlotRemap::new(, _CORNER_MAPPING),
+//     SlotRemap::new(, _SIDE_MAPPING),
+// ];
 
 /// Clockwise quarter turn of the Uw (whole-cube) axis.
 pub(crate) fn turn_uw(state: State) -> State {
