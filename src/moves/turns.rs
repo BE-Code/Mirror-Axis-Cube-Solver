@@ -2,14 +2,18 @@ use crate::state::{slot, SlotRemap, State};
 
 const U_CENTER_MAPPING: [u8; 4] = [3, 0, 1, 2];
 const U_CORNER_MAPPING: [u8; 4] = [0, 2, 1, 3];
-// const U_SIDE_MAPPING: [u8; 4] = [-0, -1, -2, -3];
+const U_SIDE_MAPPING: [u8; 4] = [0, 1, 3, 2];
 
-const U_TURN_REMAPS: [SlotRemap; 5] = [
+const U_TURN_REMAPS: [SlotRemap; 9] = [
     SlotRemap::new(slot::U, slot::U, U_CENTER_MAPPING),
     SlotRemap::new(slot::FLU, slot::BLU, U_CORNER_MAPPING),
     SlotRemap::new(slot::BLU, slot::BRU, U_CORNER_MAPPING),
     SlotRemap::new(slot::BRU, slot::FRU, U_CORNER_MAPPING),
     SlotRemap::new(slot::FRU, slot::FLU, U_CORNER_MAPPING),
+    SlotRemap::new(slot::FU, slot::LU, U_SIDE_MAPPING),
+    SlotRemap::new(slot::LU, slot::BU, U_SIDE_MAPPING),
+    SlotRemap::new(slot::BU, slot::RU, U_SIDE_MAPPING),
+    SlotRemap::new(slot::RU, slot::FU, U_SIDE_MAPPING),
 ];
 
 /// Clockwise quarter turn of the U face.
