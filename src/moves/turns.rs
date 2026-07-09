@@ -52,26 +52,25 @@ pub(crate) fn turn_uw(state: State) -> State {
     state.remap_batch(UW_TURN_REMAPS)
 }
 
-// const L_CENTER_MAPPING: [u8; 4] = [-0, -1, -2, -3];
-// const L_CORNER_MAPPING: [u8; 4] = [-0, -1, -2, -3];
-// const L_SIDE_MAPPING:   [u8; 4] = [-0, -1, -2, -3];
-// const L_TURN_REMAPS: [SlotRemap; 9] = [
-//     SlotRemap::new(slot::L, slot::L, L_CENTER_MAPPING),
-//     SlotRemap::new(, L_CORNER_MAPPING),
-//     SlotRemap::new(, L_CORNER_MAPPING),
-//     SlotRemap::new(, L_CORNER_MAPPING),
-//     SlotRemap::new(, L_CORNER_MAPPING),
-//     SlotRemap::new(, L_SIDE_MAPPING),
-//     SlotRemap::new(, L_SIDE_MAPPING),
-//     SlotRemap::new(, L_SIDE_MAPPING),
-//     SlotRemap::new(, L_SIDE_MAPPING),
-// ];
+const L_CENTER_MAPPING: [u8; 4] = [3, 0, 1, 2];
+const L_CORNER_MAPPING: [u8; 4] = [0, 3, 2, 1];
+const L_SIDE_MAPPING: [u8; 4] = [0, 1, 2, 3];
+const L_TURN_REMAPS: [SlotRemap; 9] = [
+    SlotRemap::new(slot::L, slot::L, L_CENTER_MAPPING),
+    SlotRemap::new(slot::FLU, slot::FLD, L_CORNER_MAPPING),
+    SlotRemap::new(slot::FLD, slot::BLD, L_CORNER_MAPPING),
+    SlotRemap::new(slot::BLD, slot::BLU, L_CORNER_MAPPING),
+    SlotRemap::new(slot::BLU, slot::FLU, L_CORNER_MAPPING),
+    SlotRemap::new(slot::FL, slot::LD, L_SIDE_MAPPING),
+    SlotRemap::new(slot::LD, slot::BL, L_SIDE_MAPPING),
+    SlotRemap::new(slot::BL, slot::LU, L_SIDE_MAPPING),
+    SlotRemap::new(slot::LU, slot::FL, L_SIDE_MAPPING),
+];
 
 /// Clockwise quarter turn of the L face.
 #[inline]
 pub(crate) fn turn_l(state: State) -> State {
-    // state.remap_batch(L_TURN_REMAPS)
-    state
+    state.remap_batch(L_TURN_REMAPS)
 }
 
 // const R_CENTER_MAPPING: [u8; 4] = [-0, -1, -2, -3];
