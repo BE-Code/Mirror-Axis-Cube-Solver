@@ -34,7 +34,7 @@ pub const GOLDEN_FLEECE: State = SOLVED.set_slot(slot::U, 2);
 pub const GOLDEN_FLEECE_2: State = SOLVED.set_slot(slot::U, 0);
 
 /// Active start state for the solver — change this to switch cases.
-pub const START_STATE: State = GOLDEN_FLEECE;
+pub const START_STATE: State = GOLDEN_FLEECE_2;
 
 /// Active goal state for the solver.
 pub const SOLVED_STATE: State = SOLVED;
